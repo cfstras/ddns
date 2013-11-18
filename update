@@ -1,0 +1,42 @@
+#!/bin/bash
+
+ZONE=dyn.cfs.im
+HOST=sexy
+
+IP4CMD=ip4
+IP6CMD=ip6
+
+KEYFILE=dyn.cfs.im.key
+
+########################################################
+
+which $IP4CMD >/dev/null && IP4="`${IP4CMD} | head -n1`"
+which $IP6CMD >/dev/null && IP6="`${IP6CMD} | head -n1`"
+#TODO validate input
+
+#echo "ip4 = ${IP4}"
+#echo "ip6 = ${IP6}"
+
+UPDFILE=`tempfile --prefix "ddns-" --suffix -$(date -I)`
+touch "${UPDFILE}" || exit 1
+#TODO trap remove file
+
+cat > "${UPDFILE}" <<EOF1
+server $ZONE
+zone $ZONE.
+update delete $HOST.$ZONE. A
+update delete $HOST.$ZONE. AAAA
+EOF1
+
+[[ -z "${IP4}" ]] || echo "update add $HOST.$ZONE. 60 A ${IP4}" >> "${UPDFILE}"
+[[ -z "${IP6}" ]] || echo "update add $HOST.$ZONE. 60 AAAA ${IP6}" >> "${UPDFILE}"
+
+echo "show" >> "${UPDFILE}"
+
+[[ "true" == "${SEND}" ]] || echo "Not sending, SEND must be true!"
+[[ "true" == "${SEND}" ]] && echo "send" >> "${UPDFILE}"
+
+cat "${UPDFILE}" | nsupdate -k "${KEYFILE}"
+
+rm "${UPDFILE}"
+
