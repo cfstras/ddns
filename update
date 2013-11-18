@@ -13,17 +13,31 @@ error() {
     exit $CODE
 }
 
-# TODO Maybe load some more defaults
-SEND=true
+# load some more defaults
+[[ -z "$SEND" ]] && SEND=true
+
+EXT_IP4_SERVICE="ip.appspot.com"
+EXT_IP4_OPTS="-4"
+EXT_IP4_EXEC="curl"
+
 source $CONFIG_FILE || error 1 "Could not load configuration file at:" "$CONFIG_FILE"
 # TODO Check config values (e.g. KEYFILE)
 
-IP4_CMD="$SCRIPT_DIR/ip4"
+EXT_IP4_CMD="$EXT_IP4_EXEC $EXT_IP4_OPTS $EXT_IP4_SERVICE"
+
+INT_IP4_CMD="$SCRIPT_DIR/ip4"
 IP6_CMD="$SCRIPT_DIR/ip6"
 
+if [[ "$USE_INTERNAL_IPV4" != "true" ]]; then
+    IP4_CMD="$EXT_IP4_CMD"
+    [ -x "$EXT_IP4_EXEC" ] || which "$EXT_IP4_EXEC">/dev/null || error 2 "Could not find $EXT_IP4_EXEC!"
+else
+    IP4_CMD="$INT_IP4_CMD"
+    [ -x "$IP4_CMD" ] || error 3 "Could not find the ip4 executable:" "$IP4_CMD"
+fi
+
 # Check that those tools exist and are executables
-[ -x "$IP4_CMD" ] || error 1 "Could not find the ip4 executable:" "$IP4_CMD"
-[ -x "$IP6_CMD" ] || error 1 "Could not find the ip6 executable:" "$IP6_CMD"
+[ -x "$IP6_CMD" ] || error 4 "Could not find the ip6 executable:" "$IP6_CMD"
 
 IP4="$($IP4_CMD | head -n1)"
 IP6="$($IP6_CMD | head -n1)"
@@ -31,7 +45,7 @@ IP6="$($IP6_CMD | head -n1)"
 # TODO validate input
 
 UPDFILE=$(tempfile --prefix "ddns-" --suffix -$(date -I))
-touch "$UPDFILE" || error 1 "Failed to create temporary file:" "$UPDFILE"
+touch "$UPDFILE" || error 5 "Failed to create temporary file:" "$UPDFILE"
 
 # TODO trap remove file
 

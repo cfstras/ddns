@@ -10,3 +10,19 @@ HOST=super-pc
 # Path to your keyfile, relative to the script directory
 KEYFILE=dynamic.example.com.key
 
+# Enable this to use your reported IPv4 instead of your external IPv4.
+# If you're on a local LAN and/or behind a NAT, do not enable this!
+USE_INTERNAL_IPV4=false
+
+# Service to use for pulling external IPv4
+EXT_IP4_SERVICE="ip.appspot.com"
+# Executable to use for pulling external IPv4
+EXT_IP4_EXEC="curl"
+# Options to give that executable
+EXT_IP4_OPTS="-4"
+
+# Command to get internal IPv4
+INT_IP4_CMD="$SCRIPT_DIR/ip4"
+# Command to get IPv6
+IP6_CMD="$SCRIPT_DIR/ip6"
+

@@ -2,7 +2,7 @@ ddns
 ====
 
 Helper scripts for updating a dynamic DNS domain name.  
-Uses **ip addr** to get your IPs, sends them out with nsupdate.
+Uses **ip addr** and **curl** to get your IPs, sends them out with nsupdate.
 
 usage
 -----
@@ -16,7 +16,7 @@ usage
   - run `ddns-confgen` and copy the generated `key` to /etc/bind
   - make sure the key is only readable by the bind user
 
-- On your client:
+- On your clients:
   - get the keyfile, chmod it to be only be readable by the user which the script
     will run as
   - Copy `config.example` to a file named `config`
@@ -25,7 +25,7 @@ usage
 
 ```bash
     SEND=false ./update # to see what would be sent
-    SEND=true  ./update # to actually send it
+    ./update # to actually send it
 ```
 
 requirements
@@ -34,10 +34,11 @@ requirements
 These are the minimum requirements for running the script on a client:
 
 - **nsupdate**  
-  can be found in the **dnsutils** package on most distros
+  can be found in the dnsutils package on most distros
 - **bash**
 - **GNU awk**  
-  can be found in the **gawk** package
+  can be found in the gawk package
+- **curl**
 - **ip utility**  
-  can be found in the **iproute2** package
+  can be found in the iproute2 package
 
