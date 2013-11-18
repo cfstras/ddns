@@ -1,11 +1,10 @@
 #!/bin/bash
 cd "$( dirname "${BASH_SOURCE[0]}" )"
 
-source config
-SUCCESS=$?
+source config || export SUCCESS=false
 
-if [[ SUCCESS != 0 ]];then
-  echo "Error: no config given"
+if [[ $SUCCESS == false ]];then
+  echo "Error: no config found"
   exit 1
 fi
 
@@ -15,9 +14,6 @@ IP6CMD=./ip6
 which $IP4CMD >/dev/null && IP4="`${IP4CMD} | head -n1`"
 which $IP6CMD >/dev/null && IP6="`${IP6CMD} | head -n1`"
 #TODO validate input
-
-#echo "ip4 = ${IP4}"
-#echo "ip6 = ${IP6}"
 
 UPDFILE=`tempfile --prefix "ddns-" --suffix -$(date -I)`
 touch "${UPDFILE}" || exit 1
@@ -35,8 +31,11 @@ EOF1
 
 echo "show" >> "${UPDFILE}"
 
-[[ "true" == "${SEND}" ]] || echo "Not sending, SEND must be true!"
-[[ "true" == "${SEND}" ]] && echo "send" >> "${UPDFILE}"
+if [[ "true" != "${SEND}" ]]; then
+    echo "Not sending, SEND must be true!"
+else
+    echo "send" >> "${UPDFILE}"
+fi
 
 cat "${UPDFILE}" | nsupdate -k "${KEYFILE}"
 
