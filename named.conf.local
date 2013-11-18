@@ -1,0 +1,11 @@
+// Insert this into your named.conf.local
+
+zone "dynamic.example.com" {
+    type master;
+    file "/var/lib/bind/db.dynamic.example.com";
+    update-policy {
+        grant ddns-key.dynamic.example.com zonesub AAAA A;
+    };
+};
+include "/etc/bind/key.dynamic.example.com";
+
