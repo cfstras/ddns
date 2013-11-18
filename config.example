@@ -1,0 +1,12 @@
+
+# Your DNS Zone.
+# No dot at the end.
+ZONE=dynamic.example.com
+
+# Your chosen hostname.
+# If your hostname is "super-pc", you will get super-pc.dynamic.example.com.
+HOST=super-pc
+
+# Path to your keyfile, relative to the script directory
+KEYFILE=dynamic.example.com.key
+

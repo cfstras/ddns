@@ -1,0 +1,4 @@
+#!/bin/bash
+
+ip -4 addr | gawk 'match($0, /^\s*inet\s+(([0-9]{1,3}\.){3}[0-9]{1,3})(.*)scope global .*$/, a) {print a[1]}'
+

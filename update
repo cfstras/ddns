@@ -1,14 +1,16 @@
 #!/bin/bash
+cd "$( dirname "${BASH_SOURCE[0]}" )"
 
-ZONE=dyn.cfs.im
-HOST=sexy
+source config
+SUCCESS=$?
 
-IP4CMD=ip4
-IP6CMD=ip6
+if [[ SUCCESS != 0 ]];then
+  echo "Error: no config given"
+  exit 1
+fi
 
-KEYFILE=dyn.cfs.im.key
-
-########################################################
+IP4CMD=./ip4
+IP6CMD=./ip6
 
 which $IP4CMD >/dev/null && IP4="`${IP4CMD} | head -n1`"
 which $IP6CMD >/dev/null && IP6="`${IP6CMD} | head -n1`"
