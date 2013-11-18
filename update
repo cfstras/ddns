@@ -1,43 +1,58 @@
 #!/bin/bash
-cd "$( dirname "${BASH_SOURCE[0]}" )"
 
-source config || export SUCCESS=false
+SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+CONFIG_FILE=${CONFIG_FILE:-$SCRIPT_DIR/config}
 
-if [[ $SUCCESS == false ]];then
-  echo "Error: no config found"
-  exit 1
-fi
+error() {
+    CODE="$1"
+    shift
+    while [ -n "$1" ] ; do
+        echo "$1" 1>&2
+        shift
+    done
+    exit $CODE
+}
 
-IP4CMD=./ip4
-IP6CMD=./ip6
+# TODO Maybe load some more defaults
+SEND=true
+source $CONFIG_FILE || error 1 "Could not load configuration file at:" "$CONFIG_FILE"
+# TODO Check config values (e.g. KEYFILE)
 
-which $IP4CMD >/dev/null && IP4="`${IP4CMD} | head -n1`"
-which $IP6CMD >/dev/null && IP6="`${IP6CMD} | head -n1`"
-#TODO validate input
+IP4_CMD="$SCRIPT_DIR/ip4"
+IP6_CMD="$SCRIPT_DIR/ip6"
 
-UPDFILE=`tempfile --prefix "ddns-" --suffix -$(date -I)`
-touch "${UPDFILE}" || exit 1
-#TODO trap remove file
+# Check that those tools exist and are executables
+[ -x "$IP4_CMD" ] || error 1 "Could not find the ip4 executable:" "$IP4_CMD"
+[ -x "$IP6_CMD" ] || error 1 "Could not find the ip6 executable:" "$IP6_CMD"
 
-cat > "${UPDFILE}" <<EOF1
+IP4="$($IP4_CMD | head -n1)"
+IP6="$($IP6_CMD | head -n1)"
+
+# TODO validate input
+
+UPDFILE=$(tempfile --prefix "ddns-" --suffix -$(date -I))
+touch "$UPDFILE" || error 1 "Failed to create temporary file:" "$UPDFILE"
+
+# TODO trap remove file
+
+cat > "$UPDFILE" <<EOF1
 server $ZONE
 zone $ZONE.
 update delete $HOST.$ZONE. A
 update delete $HOST.$ZONE. AAAA
 EOF1
 
-[[ -z "${IP4}" ]] || echo "update add $HOST.$ZONE. 60 A ${IP4}" >> "${UPDFILE}"
-[[ -z "${IP6}" ]] || echo "update add $HOST.$ZONE. 60 AAAA ${IP6}" >> "${UPDFILE}"
+[ -z "${IP4}" ] || echo "update add $HOST.$ZONE. 60 A $IP4" >> "$UPDFILE"
+[ -z "${IP6}" ] || echo "update add $HOST.$ZONE. 60 AAAA $IP6" >> "$UPDFILE"
 
-echo "show" >> "${UPDFILE}"
+echo "show" >> "$UPDFILE"
 
-if [[ "true" != "${SEND}" ]]; then
-    echo "Not sending, SEND must be true!"
+if [ "true" != "$SEND" ]; then
+    echo "Not sending: \"SEND\" is set to false." 1>&2
 else
     echo "send" >> "${UPDFILE}"
 fi
 
-cat "${UPDFILE}" | nsupdate -k "${KEYFILE}"
-
-rm "${UPDFILE}"
+cat "$UPDFILE" | nsupdate -k "$KEYFILE"
+rm "$UPDFILE"
 
