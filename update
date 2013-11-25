@@ -1,6 +1,14 @@
 #!/bin/bash
 
-SCRIPT_DIR="$(dirname "${BASH_SOURCE[0]}")"
+SCRIPT_DIR="${BASH_SOURCE[0]}";
+if ([ -h "${SCRIPT_DIR}" ]) then
+  while([ -h "${SCRIPT_DIR}" ]) do SCRIPT_DIR=`readlink "${SCRIPT_DIR}"`; done
+fi
+pushd . > /dev/null
+cd `dirname ${SCRIPT_DIR}` > /dev/null
+SCRIPT_DIR=`pwd`;
+popd  > /dev/null
+
 CONFIG_FILE=${CONFIG_FILE:-$SCRIPT_DIR/config}
 
 error() {
@@ -23,7 +31,7 @@ EXT_IP4_EXEC="curl"
 source $CONFIG_FILE || error 1 "Could not load configuration file at:" "$CONFIG_FILE"
 # TODO Check config values (e.g. KEYFILE)
 
-EXT_IP4_CMD="$EXT_IP4_EXEC $EXT_IP4_OPTS $EXT_IP4_SERVICE"
+EXT_IP4_CMD="$EXT_IP4_EXEC $EXT_IP4_OPTS $EXT_IP4_SERVICE >/dev/null"
 
 INT_IP4_CMD="$SCRIPT_DIR/ip4"
 IP6_CMD="$SCRIPT_DIR/ip6"
